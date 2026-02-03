@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#133341" />
+    <title>Roo</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="app-title">
+        <h1>Roo</h1>
+        <p class="muted">Offline-first blanket picker</p>
+      </div>
+
+      <nav class="tabs" role="tablist" aria-label="Sections">
+        <button
+          class="tab"
+          id="tab-tonight"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-tonight"
+        >
+          Tonight
+        </button>
+        <button
+          class="tab"
+          id="tab-blankets"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-blankets"
+        >
+          Blankets
+        </button>
+        <button
+          class="tab"
+          id="tab-rules"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-rules"
+        >
+          Rules
+        </button>
+      </nav>
+    </header>
+
+    <main class="app-main">
+      <section
+        class="panel"
+        id="panel-tonight"
+        role="tabpanel"
+        aria-labelledby="tab-tonight"
+      >
+        <div class="card">
+          <div class="row">
+            <h2>Tonight</h2>
+            <div class="row right">
+              <button id="refreshWeatherBtn" type="button">Refresh</button>
+            </div>
+          </div>
+          <p class="muted" id="tonightWindow">—</p>
+          <p class="muted" id="weatherStatus">—</p>
+
+          <dl class="metrics">
+            <div class="metric">
+              <dt>Min temp</dt>
+              <dd id="minTemp">—</dd>
+            </div>
+            <div class="metric">
+              <dt>Min feels</dt>
+              <dd id="minFeels">—</dd>
+            </div>
+            <div class="metric">
+              <dt>Max precip</dt>
+              <dd id="maxPrecip">—</dd>
+            </div>
+            <div class="metric">
+              <dt>Max wind</dt>
+              <dd id="maxWind">—</dd>
+            </div>
+            <div class="metric">
+              <dt>Wet risk</dt>
+              <dd id="wetRisk">—</dd>
+            </div>
+          </dl>
+        </div>
+
+        <div class="card">
+          <h2>Recommendation</h2>
+          <div id="recommendation">
+            <p class="muted">Add blankets, combos, and rules to get a pick.</p>
+          </div>
+        </div>
+      </section>
+
+      <section
+        class="panel"
+        id="panel-blankets"
+        role="tabpanel"
+        aria-labelledby="tab-blankets"
+        hidden
+      >
+        <div class="card">
+          <h2>Blankets</h2>
+          <form id="blanketForm" class="form">
+            <input type="hidden" id="blanketId" value="" />
+            <label>
+              Name
+              <input id="blanketName" name="name" autocomplete="off" required />
+            </label>
+            <label>
+              Notes
+              <textarea id="blanketNotes" name="notes" rows="2"></textarea>
+            </label>
+            <div class="row">
+              <button id="blanketSubmitBtn" type="submit">Add blanket</button>
+              <button id="blanketCancelBtn" type="button" class="secondary" hidden>
+                Cancel
+              </button>
+            </div>
+          </form>
+
+          <div id="blanketsList" class="list"></div>
+        </div>
+
+        <div class="card">
+          <h2>Combos</h2>
+          <form id="comboForm" class="form">
+            <input type="hidden" id="comboId" value="" />
+            <label>
+              Name
+              <input id="comboName" name="name" autocomplete="off" required />
+            </label>
+            <fieldset>
+              <legend>Select blankets</legend>
+              <div id="comboBlanketChoices" class="choices muted">
+                Add a blanket first.
+              </div>
+            </fieldset>
+            <div class="row">
+              <button id="comboSubmitBtn" type="submit">Add combo</button>
+              <button id="comboCancelBtn" type="button" class="secondary" hidden>
+                Cancel
+              </button>
+            </div>
+          </form>
+
+          <div id="combosList" class="list"></div>
+        </div>
+      </section>
+
+      <section
+        class="panel"
+        id="panel-rules"
+        role="tabpanel"
+        aria-labelledby="tab-rules"
+        hidden
+      >
+        <div class="card">
+          <h2>Rules</h2>
+          <p class="muted">
+            Rules are checked top to bottom (first match wins). Each rule is an
+            AND of conditions, and chooses a combo.
+          </p>
+
+          <div class="form">
+            <label>
+              Default combo (optional)
+              <select id="defaultComboSelect"></select>
+            </label>
+          </div>
+
+          <hr class="sep" />
+
+          <form id="ruleForm" class="form">
+            <input type="hidden" id="ruleId" value="" />
+            <label>
+              Rule name (optional)
+              <input id="ruleName" name="name" autocomplete="off" />
+            </label>
+
+            <fieldset>
+              <legend>Conditions (AND)</legend>
+              <div id="conditionsList" class="conditions"></div>
+              <button id="addConditionBtn" type="button" class="secondary">
+                Add condition
+              </button>
+            </fieldset>
+
+            <label>
+              Choose combo
+              <select id="ruleComboSelect" required></select>
+            </label>
+
+            <div class="row">
+              <button id="ruleSubmitBtn" type="submit">Add rule</button>
+              <button id="ruleCancelBtn" type="button" class="secondary" hidden>
+                Cancel
+              </button>
+            </div>
+          </form>
+
+          <div id="rulesList" class="list"></div>
+        </div>
+
+        <div class="card">
+          <h2>Backup</h2>
+          <p class="muted">
+            Export/import your blankets, combos, and rules (includes default
+            combo). Import replaces your current data.
+          </p>
+          <div class="row wrap">
+            <button id="exportBtn" type="button">Export JSON</button>
+            <label class="file-btn">
+              Import JSON file
+              <input id="importFile" type="file" accept="application/json" />
+            </label>
+            <button id="importFromTextBtn" type="button" class="secondary">
+              Import from text
+            </button>
+          </div>
+          <textarea
+            id="backupText"
+            rows="10"
+            spellcheck="false"
+            placeholder="Export will appear here. You can also paste JSON here to import."
+          ></textarea>
+          <p class="muted" id="backupStatus">—</p>
+        </div>
+      </section>
+    </main>
+
+    <noscript>
+      <div class="card">
+        <p>This app needs JavaScript enabled.</p>
+      </div>
+    </noscript>
+
+    <script src="app.js"></script>
+  </body>
+</html>
