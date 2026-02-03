@@ -73,6 +73,11 @@
   const round1 = (value) => (isFiniteNumber(value) ? Math.round(value * 10) / 10 : NaN);
 
   const formatF = (value) => (isFiniteNumber(value) ? `${round1(value)}°F` : "—");
+  const formatTempBoth = (valueF) => {
+    if (!isFiniteNumber(valueF)) return "—";
+    const valueC = (valueF - 32) * (5 / 9);
+    return `${round1(valueF)}°F / ${round1(valueC)}°C`;
+  };
   const formatMph = (value) => (isFiniteNumber(value) ? `${round1(value)} mph` : "—");
   const formatPct = (value) =>
     isFiniteNumber(value) ? `${Math.round(value)}%` : "—";
@@ -370,8 +375,8 @@
 
   const renderWeather = () => {
     const m = state.weather.metrics;
-    ui.minTemp.textContent = m ? formatF(m.minTempF) : "—";
-    ui.minFeels.textContent = m ? formatF(m.minFeelsF) : "—";
+    ui.minTemp.textContent = m ? formatTempBoth(m.minTempF) : "—";
+    ui.minFeels.textContent = m ? formatTempBoth(m.minFeelsF) : "—";
     ui.maxPrecip.textContent = m ? formatPct(m.maxPrecipProb) : "—";
     ui.maxWind.textContent = m ? formatMph(m.maxWindMph) : "—";
     ui.wetRisk.textContent = m ? (m.wetRisk ? "Yes" : "No") : "—";
