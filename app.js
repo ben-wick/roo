@@ -284,7 +284,10 @@
       fetchedAtIso: "",
       timezone: "",
     },
-    weatherTimer: null,
+    weatherTimers: {
+      timeoutId: null,
+      intervalId: null,
+    },
   };
 
   // ---- Elements ----
@@ -947,14 +950,28 @@
 
   const startWeatherAutoRefresh = () => {
     stopWeatherAutoRefresh();
-    state.weatherTimer = setInterval(() => {
+
+    const lastMs = state.weather.fetchedAtIso ? Date.parse(state.weather.fetchedAtIso) : NaN;
+    const ageMs = Number.isFinite(lastMs) ? Date.now() - lastMs : Number.POSITIVE_INFINITY;
+    const remainingMs = WEATHER_REFRESH_MS - ageMs;
+
+    const firstDelayMs = Number.isFinite(remainingMs)
+      ? Math.min(WEATHER_REFRESH_MS, Math.max(5_000, remainingMs))
+      : 5_000;
+
+    state.weatherTimers.timeoutId = setTimeout(() => {
       refreshWeather({ quietIfFresh: true });
-    }, WEATHER_REFRESH_MS);
+      state.weatherTimers.intervalId = setInterval(() => {
+        refreshWeather({ quietIfFresh: true });
+      }, WEATHER_REFRESH_MS);
+    }, firstDelayMs);
   };
 
   const stopWeatherAutoRefresh = () => {
-    if (state.weatherTimer) clearInterval(state.weatherTimer);
-    state.weatherTimer = null;
+    if (state.weatherTimers.timeoutId) clearTimeout(state.weatherTimers.timeoutId);
+    if (state.weatherTimers.intervalId) clearInterval(state.weatherTimers.intervalId);
+    state.weatherTimers.timeoutId = null;
+    state.weatherTimers.intervalId = null;
   };
 
   // ---- Weather refresh orchestration ----
@@ -967,6 +984,12 @@
       Number.isFinite(lastMs) &&
       Date.now() - lastMs < WEATHER_REFRESH_MS - 5_000
     ) {
+      const when = new Date(state.weather.fetchedAtIso).toLocaleString();
+      const next = new Date(lastMs + WEATHER_REFRESH_MS).toLocaleTimeString([], {
+        hour: "numeric",
+        minute: "2-digit",
+      });
+      setWeatherStatus(`Weather is fresh (updated ${when}). Next auto refresh ~${next}.`);
       return;
     }
 
@@ -1188,4 +1211,3 @@
 
   init();
 })();
-
